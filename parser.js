@@ -6,7 +6,6 @@ function numFix(num) {
 
 var asm = [];
 
-
 function parseExpression(expression, reg, bottom) {
    
     if(!bottom){ 
@@ -40,7 +39,7 @@ function parseExpression(expression, reg, bottom) {
     }
     stack.push(current);   
     
-    while(stack.length > 1) {
+    while(stack.length > 1 || bottom) {
         var triggers = ["*/", "+-"];
         var triggerI = 0;
     
@@ -102,6 +101,7 @@ function parseExpression(expression, reg, bottom) {
     
     if(!bottom && stack[0] != reg) asm.splice(0,1);
     
+    if(!bottom) return [asm, stack];
     return stack;
     
 }
