@@ -38,67 +38,66 @@ function parseExpression(expression, reg, bottom) {
         ++index;
     }
     stack.push(current);   
-    
-    while(stack.length > 1 || bottom) {
-        var triggers = ["*/", "+-"];
-        var triggerI = 0;
-    
-        while(trigger = triggers[triggerI++]) {
-            index = 0;
-            while(index < stack.length) {
-                if(trigger.indexOf(stack[index]) > -1) {
-                    var operation = stack[index],
-                        op1 = numFix(stack[index-1]),
-                        op2 = numFix(stack[index+1]);
-                    if(op1*1 && op2 * 1) stack[index-1] = eval(op1+operation+op2);
-                    else {
-                        stack[index-1] = reg;
+    var triggers = ["*/", "+-"];
+    var triggerI = 0;
 
-                        if(['x','l','h'].indexOf(op2.slice(-1)) > -1 && (operation == '+' || operation == '*')) {
-                            var t = op1;
-                            op1 = op2;
-                            op2 = t;
-                        }
-                    
-                        var instructs = {'+': 'add',
-                                        '-': 'sub',
-                                        '*': 'mul',
-                                        '/': 'div'}
-
-                        switch(operation) {
-                        case '+':
-                        case '-':
-                            if(reg != op1) asm.push("mov "+reg+","+op1);
-                            asm.push(instructs[operation]+" "+reg+","+op2);
-                            break;
-                        case '*':
-                        case '/':
-                            if('ax' != op1) {
-                                 asm.push("push ax");
-                                 asm.push("mov ax,"+op1);
-                            }
-                            asm.push(instructs[operation]+" "+op2);
-                            if('ax' != op1) {
-                                asm.push("mov "+reg+", ax");
-                                asm.push("pop ax");
-                            }
-                            break;
-                        default:
-                            console.log("invalid operation "+operation);
-                        }
-                    
-                    }
+    while(trigger = triggers[triggerI++]) {
+        index = 0;
+        while(stack.indexOf(' ') > -1) stack.splice(stack.indexOf(' '), 1);    
+        
+        while(index < stack.length) {
+            
+            if(trigger.indexOf(stack[index]) > -1) {
+                var operation = stack[index],
+                    op1 = numFix(stack[index-1]),
+                    op2 = numFix(stack[index+1]);
+                if(op1*1 && op2 * 1) {
+                    stack[index-1] = eval(op1+operation+op2);
                     stack.splice(index, 2);
+                } else {
+                    stack[index-1] = reg;
+                    stack.splice(index, 2);
+
+                    if(['x','l','h'].indexOf(op2.slice(-1)) > -1 && (operation == '+' || operation == '*')) {
+                        var t = op1;
+                        op1 = op2;
+                        op2 = t;
+                    }
+                
+                    var instructs = {'+': 'add',
+                                    '-': 'sub',
+                                    '*': 'mul',
+                                    '/': 'div'}
+
+                    switch(operation) {
+                    case '+':
+                    case '-':
+                        if(reg != op1) asm.push("mov "+reg+","+op1);
+                        asm.push(instructs[operation]+" "+reg+","+op2);
+                        break;
+                    case '*':
+                    case '/':
+                        if('ax' != op1) {
+                             asm.push("push ax");
+                             asm.push("mov ax,"+op1);
+                        }
+                        asm.push(instructs[operation]+" "+op2);
+                        if('ax' != op1) {
+                            asm.push("mov "+reg+", ax");
+                            asm.push("pop ax");
+                        }
+                        break;
+                    default:
+                        console.log("invalid operation "+operation);
+                    }
                 
                 }
-                ++index;
+            
             }
+            ++index;
         }
-        
-        while(stack[stack.length-1] == ' ') stack.splice(stack.length-1, 1);    
-        
-    }
-    
+    }    
+            
     if(!bottom && stack[0] != reg) asm.splice(0,1);
     
     if(!bottom) return [asm, stack];
