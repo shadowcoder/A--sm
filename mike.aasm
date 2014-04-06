@@ -1,16 +1,22 @@
 	BITS 16
 
 start:
-    ss = 07C0h + ((4096 + 512) / 16) ; compute stack segment
-    sp = 4096 ; stack pointer..
+    ss = 07C0h + ((4096 + 512) / 16)
+    sp = 4096
+
     ds = 07C0h
 
-    print_string("This is my cool new OS!")
+	mov si, text_string	; Put string position into SI
+	call print_string	; Call our string-printing routine
 
 	jmp $			; Jump here - infinite loop!
 
-print_string(si):			; Routine: output string in SI to screen
-	ah = 0Eh		; int 10h 'print char' function
+
+	text_string db 'This is my cool new OS!', 0
+
+
+print_string:			; Routine: output string in SI to screen
+	mov ah, 0Eh		; int 10h 'print char' function
 
 .repeat:
 	lodsb			; Get character from string
@@ -22,8 +28,6 @@ print_string(si):			; Routine: output string in SI to screen
 .done:
 	ret
 
-LITERALS
 
 	times 510-($-$$) db 0	; Pad remainder of boot sector with 0s
 	dw 0xAA55		; The standard PC boot signature
-    
